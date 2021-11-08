@@ -132,7 +132,7 @@ class ZephyrScaleClient {
      * @param testRunName
      * @return testRunId of created testRun
      */
-    addTestRunCycle(projectKey=this.options.projectKey, testRunName = `Test run ${this.getDateNow()}`, folderId=this.options.testCycleFolder) {
+    addTestRunCycle(projectKey=this.options.projectKey, testRunName = `Run: ${process.env.RUN_ID} / Branch: ${process.env.BRANCH_NAME} (${this.getDateNow()})`, folderId=this.options.testCycleFolder) {
         let requestBody = {
             "projectKey": projectKey,
             "name": testRunName,

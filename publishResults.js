@@ -16,7 +16,8 @@ class PublishResults {
     status = {
         'SUCCESS': 'pass',
         'ERROR': 'fail',
-        'FAILURE': 'fail'
+        'FAILURE': 'fail',
+        'SKIPPED': 'not executed'
     };
 
 
@@ -45,13 +46,10 @@ class PublishResults {
     }
 
 
-    addStepResult(step) {
-        let result = {
-            "statusName": this.status[step.result],
-        }
+    addActualResult(step) {
         let actualResult = ''
         if (step.screenshots) {
-            let imgUrl = `https://${process.env.SERENITY_REPORT_DOMAIN}/${process.env.SERENITY_REPORT_ID}/${step.screenshots[0].screenshot}`
+            let imgUrl = `https://${process.env.SERENITY_REPORT_DOMAIN}/${process.env.RUN_ID}/${step.screenshots[0].screenshot}`
             let resultImg = `<img src="${imgUrl}" />`
             actualResult = actualResult.concat(resultImg)
         }
@@ -61,6 +59,20 @@ class PublishResults {
             exception = exception.replace(/\s/g, `&emsp;`)
             actualResult = actualResult.concat(`<b>Stacktrace:</b><br>${exception}`)
         }
+        return actualResult
+    }
+
+    addStepResult(step) {
+        let result = {}
+        if (step.result == undefined) {
+            step.children.forEach(child => {
+                if (['FAILURE', 'ERROR'].includes(child.result)){
+                    step = child
+                }
+            })
+        }
+        result.statusName = this.status[step.result]
+        let actualResult = this.addActualResult(step)
         if (actualResult) {
             result.actualResult = actualResult
         }
@@ -71,6 +83,7 @@ class PublishResults {
         let cycleKey = this.zephyr.addTestRunCycle()
         let jsonFiles = this.getListOfFiles();
         for (let fileNameSequence = 0; fileNameSequence < jsonFiles.length; fileNameSequence++) {
+            console.log(jsonFiles[fileNameSequence])
             let json = this.readContent(jsonFiles[fileNameSequence]);
             let folderName = json.featureTag.name.split('/')[0];
             let folderId = this.zephyr.getFolderIdByTitle(folderName);
