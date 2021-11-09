@@ -83,7 +83,6 @@ class PublishResults {
         let cycleKey = this.zephyr.addTestRunCycle()
         let jsonFiles = this.getListOfFiles();
         for (let fileNameSequence = 0; fileNameSequence < jsonFiles.length; fileNameSequence++) {
-            console.log(jsonFiles[fileNameSequence])
             let json = this.readContent(jsonFiles[fileNameSequence]);
             let folderName = json.featureTag.name.split('/')[0];
             let folderId = this.zephyr.getFolderIdByTitle(folderName);
