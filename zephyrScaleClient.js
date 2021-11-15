@@ -1,9 +1,10 @@
-const request = require("sync-request");
+const RestClient = require('./restClient.js')
+
 
 /**
  * Zephyr Scale basic API wrapper
  */
-class ZephyrScaleClient {
+class ZephyrScaleClient extends RestClient {
 
     /**
      * Zephyr Scale constructor
@@ -11,111 +12,20 @@ class ZephyrScaleClient {
      * @param options
      */
     constructor(options) {
+        super();
         this._validate(options, 'domain');
         this._validate(options, 'apiToken');
         this._validate(options, 'projectKey');
 
-        // compute base url
         this.options = options;
         this.base = `https://${this.options.domain}/v2/`;
-    }
-
-
-    /**
-     * Validate config values
-     *
-     * @param options
-     * @param name
-     * @private
-     */
-    _validate(options, name) {
-        if (options == null) {
-            throw new Error("Missing Zephyr Scale options");
+        this.headers = {
+            "Authorization": `Bearer ${this.options.apiToken}`,
+            "Content-Type": "application/json; charset=utf-8"
         }
-        if (options[name] == null) {
-            throw new Error(`Missing ${name} value. Please update Zephyr Scale option in environment variables`);
-        }
+
     }
 
-    /**
-     * Form the url for api
-     *
-     * @param path
-     * @returns {string}
-     * @private
-     */
-    _url(path) {
-        return `${this.base}${path}`;
-    }
-
-    /**
-     * Post request formation
-     *
-     * @param api
-     * @param body
-     * @param error
-     * @returns {*}
-     * @private
-     */
-    _post(api, body, error = undefined) {
-        return this._request("POST", api, body, error);
-    }
-
-    /**
-     * get request formation
-     *
-     * @param api
-     * @param error
-     * @returns {*}
-     * @private
-     */
-    _get(api, error = undefined) {
-        return this._request("GET", api);
-    }
-
-    /**
-     * Patch request formation
-     *
-     * @param api
-     * @param error
-     * @returns {*}
-     * @private
-     */
-    _patch(api, error = undefined) {
-        return this._request("PATCH", api);
-    }
-
-    /**
-     * Api request sending to the corresponding url
-     *
-     * @param method
-     * @param api
-     * @param body
-     * @param error
-     * @returns {*}
-     * @private
-     */
-    _request(method, api, body = undefined, error = undefined) {
-        const option = {
-            headers: {
-                "Authorization": `Bearer ${this.options.apiToken}`,
-                "Content-Type": "application/json; charset=utf-8",
-            }
-        };
-        if (body !== undefined) {
-            option["json"] = body
-        }
-        let result = request(method, this._url(api), option);
-        result = JSON.parse(result.getBody('utf8'));
-        if (result.error) {
-            if (error) {
-                error(result.error);
-            } else {
-                throw new Error(result.error);
-            }
-        }
-        return result;
-    }
 
     /**
      * Returns current date in 'Mon Jan 1 2020' format
@@ -132,7 +42,7 @@ class ZephyrScaleClient {
      * @param testRunName
      * @return testRunId of created testRun
      */
-    addTestRunCycle(projectKey=this.options.projectKey, testRunName = `Run: ${process.env.RUN_ID} / Branch: ${process.env.BRANCH_NAME} (${this.getDateNow()})`, folderId=this.options.testCycleFolder) {
+    addTestRunCycle(projectKey = this.options.projectKey, testRunName = `Run: ${process.env.RUN_ID} / Branch: ${process.env.BRANCH_NAME} (${this.getDateNow()})`, folderId = this.options.testCycleFolder) {
         let requestBody = {
             "projectKey": projectKey,
             "name": testRunName,
@@ -152,7 +62,8 @@ class ZephyrScaleClient {
         let requestBody = {
             "projectKey": this.options.projectKey,
             "name": name,
-            "folderId": folderId
+            "folderId": folderId,
+            "statusName": 'Approved'
         }
         let response = this._post(`testcases`, requestBody)
         return response['key']
@@ -176,7 +87,7 @@ class ZephyrScaleClient {
      * @param name
      * @return folderId of created section
      */
-    addFolderId(name, parentId=this.options.parentId) {
+    addFolderId(name, parentId = this.options.parentId) {
         let requestBody = {
             "name": name,
             "parentId": parentId,
@@ -249,6 +160,7 @@ class ZephyrScaleClient {
             return cases[0]
         }
     }
+
     /**
      * Gets folderId based on title
      * in cases there is no such section, it will be created
@@ -280,6 +192,22 @@ class ZephyrScaleClient {
     }
 
     /**
+     * Add link between testCase in Zephyr and Jira ticket
+     * @param testCaseId
+     * @param issueId
+     */
+    addTestCaseIssueLink(testCaseKey, issueId) {
+        if (issueId) {
+            for (let i in issueId) {
+                let requestBody = {
+                    "issueId": issueId[i]
+                }
+                this._post(`testcases/${testCaseKey}/links/issues`, requestBody, undefined, true)
+            }
+        }
+    }
+
+    /**
      * Publish results into Zephyr Scale via API
      * @param cases
      * @param results
@@ -292,7 +220,7 @@ class ZephyrScaleClient {
             "statusName": testCaseResult,
             "testScriptResults": stepResult
         }
-        this._post(`testexecutions`, requestBody)
+        this._post(`testexecutions`, requestBody, undefined, true)
     }
 
 }
