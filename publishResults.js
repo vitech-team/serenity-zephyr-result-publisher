@@ -1,5 +1,6 @@
 const fs = require('fs')
 const ZephyrScaleClient = require('./zephyrScaleClient.js')
+const JiraClient = require('./jiraClient.js')
 
 
 class PublishResults {
@@ -11,7 +12,13 @@ class PublishResults {
             'parentId': process.env.ZEPHYR_FOLDER_PARENT_ID,
             'testCycleFolder': process.env.ZEPHYR_TEST_CYCLE_FOLDER
         });
-    ;
+
+    jira = new JiraClient(
+        {
+            'domain': process.env.JIRA_DOMAIN,
+            'apiToken': process.env.JIRA_TOKEN
+        });
+
 
     status = {
         'SUCCESS': 'pass',
@@ -80,10 +87,12 @@ class PublishResults {
     }
 
     processResults() {
+
         let cycleKey = this.zephyr.addTestRunCycle()
         let jsonFiles = this.getListOfFiles();
         for (let fileNameSequence = 0; fileNameSequence < jsonFiles.length; fileNameSequence++) {
             let json = this.readContent(jsonFiles[fileNameSequence]);
+            let issueId = this.jira.getIssueIdByKey(json.coreIssues)
             let folderName = json.featureTag.name.split('/')[0];
             let folderId = this.zephyr.getFolderIdByTitle(folderName);
             let suiteName = json.featureTag.name.split('/')[1];
@@ -95,6 +104,7 @@ class PublishResults {
                 let steps = []
                 let stepResult = []
                 let testCaseKey = this.zephyr.getTestCaseIdByTitle(testCaseName, folderId)
+                this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
                 let testSteps = json.testSteps[testCaseSequence].children;
                 let testCaseResult = this.status[json.testSteps[testCaseSequence].result]
                 testSteps.forEach(step => {
