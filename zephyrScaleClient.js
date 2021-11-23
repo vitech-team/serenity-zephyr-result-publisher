@@ -220,7 +220,7 @@ class ZephyrScaleClient extends RestClient {
             "statusName": testCaseResult,
             "testScriptResults": stepResult
         }
-        this._post(`testexecutions`, requestBody, undefined, true)
+        this._post(`testexecutions`, requestBody, undefined)
     }
 
 }

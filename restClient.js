@@ -102,21 +102,22 @@ class RestClient {
         const option = {
             headers: this.headers
         };
-        if (body !== undefined) {
+        if (body) {
             option["json"] = body
         }
-        let result = request(method, this._url(api), option);
-        if (!skipError) {
-            result = JSON.parse(result.getBody('utf8'));
-        }
-        if (result.error && !skipError) {
-            if (error) {
-                error(result.error);
-            } else {
-                throw new Error(result.error);
+        let count = 0;
+        let maxTries = process.env.MAX_RETRY || 3;
+        while (true && !skipError) {
+            try {
+                let result = request(method, this._url(api), option);
+                return JSON.parse(result.getBody('utf8'));
+            } catch (error) {
+                if (++count === maxTries) throw error;
             }
         }
-        return result;
+        if (skipError) {
+            return request(method, this._url(api), option);
+        }
     }
 
 
