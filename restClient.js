@@ -106,7 +106,7 @@ class RestClient {
             option["json"] = body
         }
         let count = 0;
-        let maxTries = process.env.MAX_RETRY | 3;
+        let maxTries = process.env.MAX_RETRY || 3;
         while (true && !skipError) {
             try {
                 let result = request(method, this._url(api), option);
