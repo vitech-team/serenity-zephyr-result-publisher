@@ -10,6 +10,7 @@ class PublishResults {
             'apiToken': process.env.ZEPHYR_TOKEN,
             'projectKey': process.env.ZEPHYR_PROJECT_KEY,
             'parentId': process.env.ZEPHYR_FOLDER_PARENT_ID,
+            'ownerId': process.env.ZEPHYR_OWNER_ID,
             'testCycleFolder': process.env.ZEPHYR_TEST_CYCLE_FOLDER
         });
 
