@@ -63,7 +63,8 @@ class ZephyrScaleClient extends RestClient {
             "projectKey": this.options.projectKey,
             "name": name,
             "folderId": folderId,
-            "statusName": 'Approved'
+            "statusName": 'Approved',
+            "ownerId": this.options.ownerId
         }
         let response = this._post(`testcases`, requestBody)
         return response['key']
