@@ -20,6 +20,12 @@ class PublishResults {
             'apiToken': process.env.JIRA_TOKEN
         });
 
+    statusPlaywright = {
+        'passed': 'pass',
+        'timedOut': 'blocked',
+        'failed': 'fail',
+        'skipped': 'not executed'
+    };
 
     status = {
         'SUCCESS': 'pass',
@@ -28,15 +34,13 @@ class PublishResults {
         'SKIPPED': 'not executed'
     };
 
-
     getListOfFiles(src = process.env.JSON_INPUT_PATH) {
         let jsonFiles = [];
         let files = fs.readdirSync(src)
         files.forEach(file => {
             if (file.includes('json')) {
                 jsonFiles.push(file)
-            }
-            ;
+            };
         });
         return jsonFiles;
     }
@@ -52,7 +56,6 @@ class PublishResults {
             }
         }
     }
-
 
     addActualResult(step) {
         let actualResult = ''
@@ -120,6 +123,36 @@ class PublishResults {
 
     }
 
+    processResultsPlaywright() {
+
+        let cycleKey = this.zephyr.addTestRunCycle()
+        let jsonFiles = this.getListOfFiles();
+        for (let fileNameSequence = 0; fileNameSequence < jsonFiles.length; fileNameSequence++) {
+            let json = this.readContent(jsonFiles[fileNameSequence]);
+            let issueId = this.jira.getIssueIdByKey(json.coreIssues)
+            let folderName = json.suites[0].title.split('/')[0];
+            let folderId = this.zephyr.getFolderIdByTitle(folderName);
+            let suiteName = json.suites[0].suites[0].title;
+            for (let testCaseSequence = 0; testCaseSequence < json.suites[0].suites[0].specs[0].tests.length; testCaseSequence++) {
+                let testCaseName = suiteName;
+                let steps = []
+                let stepResult = []
+                let testCaseKey = this.zephyr.getTestCaseIdByTitle(testCaseName, folderId)
+                this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
+                let testSteps = json.suites[0].suites[0].specs;
+                let testCaseResult = this.statusPlaywright[json.suites[0].suites[0].specs[0].tests.status]
+                testSteps.results.steps.forEach(step => {
+                    steps.push(this.addStep(step.description))
+                    stepResult.push(this.addStepResult(step))
+                });
+                this.zephyr.addStepsToTestCase(testCaseKey, steps)
+                this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
+            }
+
+        }
+
+    }
+    
 }
 
 module.exports = PublishResults;
