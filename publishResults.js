@@ -89,6 +89,13 @@ class PublishResults {
         }
         return result;
     }
+    
+    addStepResultPW(step) {
+        let result = {}
+        result.statusName = step
+        result.actualResult = step
+        return result;
+    }
 
     processResults() {
 
@@ -143,7 +150,7 @@ class PublishResults {
                 let testCaseResult = this.statusPlaywright[json.suites[0].suites[0].specs[0].tests[0].results[0].status]
                 testSteps.forEach(step => {
                     steps.push(this.addStep(step.title))
-                    stepResult.push(testCaseResult)
+                    stepResult.push(this.addStepResultPW(testCaseResult))
                 });
                 
                 this.zephyr.addStepsToTestCase(testCaseKey, steps)
