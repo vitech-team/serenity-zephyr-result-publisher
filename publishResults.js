@@ -93,7 +93,7 @@ class PublishResults {
     addStepResultPW(status,step) {
         let result = {}
         result.statusName = status
-        result.actualResult =  `https://${process.env.SERENITY_REPORT_DOMAIN}/${process.env.RUN_ID}/data/Screenshots/${step.title}.png`
+        result.actualResult =  `<img src="https://${process.env.SERENITY_REPORT_DOMAIN}/${process.env.RUN_ID}/data/Screenshots/${step.title}.png" />`
         return result;
     }
 
