@@ -141,10 +141,11 @@ class PublishResults {
                 this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
                 let testSteps = json.suites[0].suites[0].specs;
                 let testCaseResult = this.statusPlaywright[json.suites[0].suites[0].specs[0].tests.status]
-                testSteps.results.steps.forEach(step => {
-                    steps.push(this.addStep(step.description))
-                    stepResult.push(this.addStepResult(step))
+                testSteps.tests[0].results[0].steps[0].forEach(step => {
+                    steps.push(this.addStep(step.title))
+                    stepResult.push(testCaseResult)
                 });
+                
                 this.zephyr.addStepsToTestCase(testCaseKey, steps)
                 this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
             }
