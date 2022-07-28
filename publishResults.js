@@ -90,10 +90,10 @@ class PublishResults {
         return result;
     }
     
-    addStepResultPW(step) {
+    addStepResultPW(status,step) {
         let result = {}
-        result.statusName = step
-        result.actualResult = step
+        result.statusName = status
+        result.actualResult =  `https://${process.env.SERENITY_REPORT_DOMAIN}/${process.env.RUN_ID}/data/Screenshots/${step.title}.png`
         return result;
     }
 
@@ -150,7 +150,7 @@ class PublishResults {
                 let testCaseResult = this.statusPlaywright[json.suites[0].suites[0].specs[0].tests[0].results[0].status]
                 testSteps.forEach(step => {
                     steps.push(this.addStep(step.title))
-                    stepResult.push(this.addStepResultPW(testCaseResult))
+                    stepResult.push(this.addStepResultPW(testCaseResult,step))
                 });
                 
                 this.zephyr.addStepsToTestCase(testCaseKey, steps)
