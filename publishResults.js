@@ -137,24 +137,27 @@ class PublishResults {
         for (let fileNameSequence = 0; fileNameSequence < jsonFiles.length; fileNameSequence++) {
             let json = this.readContent(jsonFiles[fileNameSequence]);
             let issueId = this.jira.getIssueIdByKey(json.coreIssues)
-            let folderName = json.suites[0].title.split('/')[0];
-            let folderId = this.zephyr.getFolderIdByTitle(folderName);
-            let suiteName = json.suites[0].suites[0].title;
-            for (let testCaseSequence = 0; testCaseSequence < json.suites[0].suites[0].specs[0].tests.length; testCaseSequence++) {
-                let testCaseName = suiteName;
-                let steps = []
-                let stepResult = []
-                let testCaseKey = this.zephyr.getTestCaseIdByTitle(testCaseName, folderId)
-                this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
-                let testSteps = json.suites[0].suites[0].specs[0].tests[0].results[0].steps;
-                let testCaseResult = this.statusPlaywright[json.suites[0].suites[0].specs[0].tests[0].results[0].status]
-                testSteps.forEach(step => {
-                    steps.push(this.addStep(step.title))
-                    stepResult.push(this.addStepResultPW(testCaseResult,step))
-                });
+            for (let testSuiteSequence = 0; testSuiteSequence < json.suites.length; testSuiteSequence++) {
+                let folderName = json.suites[testSuiteSequence].title.split('/')[0];
+                let folderId = this.zephyr.getFolderIdByTitle(folderName);
+                let suiteName = json.suites[testSuiteSequence].suites[0].title;
+                for (let testCaseSequence = 0; testCaseSequence < json.suites[testSuiteSequence].suites[0].specs[0].tests.length; testCaseSequence++) {
+                    let testCaseName = suiteName;
+                    let steps = []
+                    let stepResult = []
+                    let testCaseKey = this.zephyr.getTestCaseIdByTitle(testCaseName, folderId)
+                    this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
+                    let testSteps = json.suites[testSuiteSequence].suites[0].specs[0].tests[0].results[0].steps;
+                    let testCaseResult = this.statusPlaywright[json.suites[testSuiteSequence].suites[0].specs[0].tests[0].results[0].status]
+                    testSteps.forEach(step => {
+                        steps.push(this.addStep(step.title))
+                        stepResult.push(this.addStepResultPW(testCaseResult,step))
+                    });
                 
                 this.zephyr.addStepsToTestCase(testCaseKey, steps)
                 this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
+                }
+                
             }
 
         }
