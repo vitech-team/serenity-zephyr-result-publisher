@@ -140,15 +140,15 @@ class PublishResults {
             for (let testSuiteSequence = 0; testSuiteSequence < json.suites.length; testSuiteSequence++) {
                 let folderName = json.suites[testSuiteSequence].title.split('/')[0];
                 let folderId = this.zephyr.getFolderIdByTitle(folderName);
-                let suiteName = json.suites[testSuiteSequence].suites[0].title;
-                for (let testCaseSequence = 0; testCaseSequence < json.suites[testSuiteSequence].suites[0].specs[0].tests.length; testCaseSequence++) {
+                let suiteName = json.suites[testSuiteSequence].specs[0].title;
+                for (let testCaseSequence = 0; testCaseSequence < json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps.length; testCaseSequence++) {
                     let testCaseName = suiteName;
                     let steps = []
                     let stepResult = []
                     let testCaseKey = this.zephyr.getTestCaseIdByTitle(testCaseName, folderId)
                     this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
-                    let testSteps = json.suites[testSuiteSequence].suites[0].specs[0].tests[0].results[0].steps;
-                    let testCaseResult = this.statusPlaywright[json.suites[testSuiteSequence].suites[0].specs[0].tests[0].results[0].status]
+                    let testSteps = json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps;
+                    let testCaseResult = this.statusPlaywright[json.suites[testSuiteSequence].specs[0].tests[0].results[0].status]
                     testSteps.forEach(step => {
                         steps.push(this.addStep(step.title))
                         stepResult.push(this.addStepResultPW(testCaseResult,step))
