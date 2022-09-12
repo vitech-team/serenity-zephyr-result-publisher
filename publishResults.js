@@ -90,10 +90,10 @@ class PublishResults {
         return result;
     }
     
-    addStepResultPW(status,step) {
+    addStepResultPW(status,image) {
         let result = {}
         result.statusName = status
-        result.actualResult =  `<img src="https://${process.env.SERENITY_REPORT_DOMAIN}/${process.env.RUN_ID}/data/Screenshots/${step.title}.png" />`
+        result.actualResult =  `<img src="https://${process.env.SERENITY_REPORT_DOMAIN}/${process.env.RUN_ID}/data/screenshots/${image}.png" />`
         return result;
     }
 
@@ -144,13 +144,16 @@ class PublishResults {
                 for (let testCaseSequence = 0; testCaseSequence < json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps.length; testCaseSequence++) {
                     let testCaseName = suiteName;
                     let steps = []
-                    let stepResult = []
+                    let stepResult = []            
                     let testCaseKey = this.zephyr.getTestCaseIdByTitle(testCaseName, folderId)
                     this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
                     let testSteps = json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps[testCaseSequence];
-                    let testCaseResult = this.statusPlaywright[json.suites[testSuiteSequence].specs[0].tests[0].results[0].status]       
+                    let testCaseResult = this.statusPlaywright[json.suites[testSuiteSequence].specs[0].tests[0].results[0].status]
+                    
+                    let image = suiteName+"-"+testSteps.title
+                    
                         steps.push(this.addStep(testSteps.title))
-                        stepResult.push(this.addStepResultPW(testCaseResult,testSteps))
+                        stepResult.push(this.addStepResultPW(testCaseResult,image))
                 this.zephyr.addStepsToTestCase(testCaseKey, steps)
                 this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
                 }
