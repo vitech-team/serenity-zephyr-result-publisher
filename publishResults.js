@@ -154,7 +154,7 @@ class PublishResults {
                     let testSteps = json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps;
                     let testCaseResult = this.statusPlaywright[json.suites[testSuiteSequence].specs[0].tests[0].results[0].status]
                     testSteps.forEach(step => {
-                        step.push(this.addStep(step.title))
+                        steps.push(this.addStep(step.title))
                         stepResult.push(this.addStepResultPW(testCaseResult,suiteName+"-"+step.title))
                     });
                 this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
