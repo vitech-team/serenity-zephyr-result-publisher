@@ -164,10 +164,11 @@ class PublishResults {
                         stepResult.push(this.addStepResultPW(testCaseResult, image))
 
                     }
-                    }
-                 this.zephyr.addStepsToTestCase(testCaseKey, steps)   
-                 this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
-                       
+                        
+                    this.zephyr.addStepsToTestCase(testCaseKey, steps)   
+                    this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
+                        
+                    } 
                 
             }
 
