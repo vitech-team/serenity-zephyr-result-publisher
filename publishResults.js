@@ -161,9 +161,9 @@ class PublishResults {
                                    (testCaseResult == "failed") ? json.suites[testSuiteSequence].specs[0].tests[0].results[0].attachments[0].path.split('/').slice(-3).join('/') : "screenshots/"+suiteName+"-"+step.title ))
                     });
                
-           //     }
+                 this.zephyr.addStepsToTestCase(testCaseKey, steps)   
                  this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
-                 this.zephyr.addStepsToTestCase(testCaseKey, steps)         
+                       
                 
             }
 
