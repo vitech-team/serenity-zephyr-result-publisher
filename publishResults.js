@@ -147,20 +147,20 @@ class PublishResults {
                     let stepResult = []            
                     let testCaseKey = this.zephyr.getTestCaseIdByTitle(testCaseName, folderId)
                     this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
-                
+                    let testCaseResult = this.statusPlaywright[json.suites[testSuiteSequence].specs[0].tests[0].results[0].status]
                 
                 for (let testCaseSequence = 0; testCaseSequence < json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps.length; testCaseSequence++) {
 
                     let testSteps = json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps;
-                    let testCaseResult = this.statusPlaywright[json.suites[testSuiteSequence].specs[0].tests[0].results[0].status]
+                 
                     testSteps.forEach(step => {
                         steps.push(this.addStep(step.title))
                         stepResult.push(this.addStepResultPW(testCaseResult,suiteName+"-"+step.title))
                     });
-                this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
+               
                 }
-                this.zephyr.addStepsToTestCase(testCaseKey, steps)
-                
+                 this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
+                 this.zephyr.addStepsToTestCase(testCaseKey, steps)         
                 
             }
 
