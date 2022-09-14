@@ -149,13 +149,10 @@ class PublishResults {
                     this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
                     let testCaseResult = this.statusPlaywright[json.suites[testSuiteSequence].specs[0].tests[0].results[0].status]
                 
-            //    for (let testCaseSequence = 0; testCaseSequence < json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps.length; testCaseSequence++) {
-
-                    let testSteps = json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps;
                     
-                    for (let testStep = 0; testStep < testSteps.length; testStep++) {
+                    for (let testStep = 0; testStep < json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps.length; testStep++) {
                         
-                        let title = testSteps[testStep].title;
+                        let title = json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps[testStep].title;
                         let image = "screenshots/"+suiteName+"-"+title;
                         
                         if (testCaseResult != "failed") {
