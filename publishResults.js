@@ -93,7 +93,7 @@ class PublishResults {
     addStepResultPW(status,image) {
         let result = {}
         result.statusName = status
-        result.actualResult =  `<img src="https://${process.env.SERENITY_REPORT_DOMAIN}/${process.env.RUN_ID}/data/screenshots/${image}.png" />`
+        result.actualResult =  `<img src="https://${process.env.SERENITY_REPORT_DOMAIN}/${process.env.RUN_ID}/data/${image}.png" />`
         return result;
     }
 
@@ -149,16 +149,19 @@ class PublishResults {
                     this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
                     let testCaseResult = this.statusPlaywright[json.suites[testSuiteSequence].specs[0].tests[0].results[0].status]
                 
-                for (let testCaseSequence = 0; testCaseSequence < json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps.length; testCaseSequence++) {
+            //    for (let testCaseSequence = 0; testCaseSequence < json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps.length; testCaseSequence++) {
 
                     let testSteps = json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps;
-                 
+                    
+                    
+                    
                     testSteps.forEach(step => {
                         steps.push(this.addStep(step.title))
-                        stepResult.push(this.addStepResultPW(testCaseResult,suiteName+"-"+step.title))
+                        stepResult.push(this.addStepResultPW(testCaseResult,
+                                   (testCaseResult == "failed") ? json.suites[testSuiteSequence].specs[0].tests[0].results[0].attachments[0].path.split('/').slice(-3).join('/') : "screenshots/"+suiteName+"-"+step.title ))
                     });
                
-                }
+           //     }
                  this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
                  this.zephyr.addStepsToTestCase(testCaseKey, steps)         
                 
