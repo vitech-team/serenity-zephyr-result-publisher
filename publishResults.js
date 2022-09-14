@@ -22,7 +22,7 @@ class PublishResults {
 
     statusPlaywright = {
         'passed': 'pass',
-        'timedOut': 'blocked',
+        'timedOut': 'fail',
         'failed': 'fail',
         'skipped': 'not executed'
     };
@@ -156,7 +156,7 @@ class PublishResults {
                         let title = json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps[testStep].title;
                         let image = "screenshots/"+suiteName+"-"+title+".png";
                         
-                        if (testCaseResult == "fail") {
+                        if ("error" in json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps[testStep]) {
                           image = json.suites[testSuiteSequence].specs[0].tests[0].results[0].attachments[0].path.split('/').slice(-3).join('/');
                         }
                         
