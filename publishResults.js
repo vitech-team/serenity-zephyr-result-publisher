@@ -153,12 +153,19 @@ class PublishResults {
 
                     let testSteps = json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps;
                     
-                    
-                    
-                    testSteps.forEach(step => {
-                        steps.push(this.addStep(step.title))
-                        stepResult.push(this.addStepResultPW(testCaseResult,(testCaseResult != "failed") ? json.suites[testSuiteSequence].specs[0].tests[0].results[0].attachments[0].path.split('/').slice(-3).join('/') : "screenshots/"+suiteName+"-"+step.title ))
-                    });
+                    for (let testStep = 0; testStep < testSteps.length; testStep++) {
+                        
+                        let title = testSteps[testStep].title;
+                        let image = "screenshots/"+suiteName+"-"+title;
+                        
+                        if (testCaseResult != "failed") {
+                          image = json.suites[testSuiteSequence].specs[0].tests[0].results[0].attachments[0].path.split('/').slice(-3).join('/');
+                        }
+                        
+                        steps.push(this.addStep(title))
+                        stepResult.push(this.addStepResultPW(testCaseResult, image))
+
+                    }
                
                  this.zephyr.addStepsToTestCase(testCaseKey, steps)   
                  this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
