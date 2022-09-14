@@ -157,8 +157,7 @@ class PublishResults {
                     
                     testSteps.forEach(step => {
                         steps.push(this.addStep(step.title))
-                        stepResult.push(this.addStepResultPW(testCaseResult,"screenshots/"+suiteName+"-"+step.title))
-              //                     (testCaseResult == "failed") ? json.suites[testSuiteSequence].specs[0].tests[0].results[0].attachments[0].path.split('/').slice(-3).join('/') : "screenshots/"+suiteName+"-"+step.title ))
+                        stepResult.push(this.addStepResultPW(testCaseResult,(testCaseResult != "failed") ? json.suites[testSuiteSequence].specs[0].tests[0].results[0].attachments[0].path.split('/').slice(-3).join('/') : "screenshots/"+suiteName+"-"+step.title ))
                     });
                
                  this.zephyr.addStepsToTestCase(testCaseKey, steps)   
