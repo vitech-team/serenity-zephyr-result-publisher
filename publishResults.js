@@ -93,7 +93,7 @@ class PublishResults {
     addStepResultPW(status,image) {
         let result = {}
         result.statusName = status
-        result.actualResult =  `<img src="https://${process.env.SERENITY_REPORT_DOMAIN}/${process.env.RUN_ID}/data/${image}.png" />`
+        result.actualResult =  `<img src="https://${process.env.SERENITY_REPORT_DOMAIN}/${process.env.RUN_ID}/data/${image}" />`
         return result;
     }
 
@@ -148,14 +148,15 @@ class PublishResults {
                     let testCaseKey = this.zephyr.getTestCaseIdByTitle(testCaseName, folderId)
                     this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
                     let testCaseResult = this.statusPlaywright[json.suites[testSuiteSequence].specs[0].tests[0].results[0].status]
-                
+                     
+                    if (testCaseResult != "not executed") {
                     
                     for (let testStep = 0; testStep < json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps.length; testStep++) {
                         
                         let title = json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps[testStep].title;
-                        let image = "screenshots/"+suiteName+"-"+title;
+                        let image = "screenshots/"+suiteName+"-"+title+".png";
                         
-                        if (testCaseResult != "failed") {
+                        if (testCaseResult == "fail") {
                           image = json.suites[testSuiteSequence].specs[0].tests[0].results[0].attachments[0].path.split('/').slice(-3).join('/');
                         }
                         
@@ -163,7 +164,7 @@ class PublishResults {
                         stepResult.push(this.addStepResultPW(testCaseResult, image))
 
                     }
-               
+                    }
                  this.zephyr.addStepsToTestCase(testCaseKey, steps)   
                  this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
                        
