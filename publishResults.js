@@ -157,9 +157,11 @@ class PublishResults {
                         let image = "screenshots/"+suiteName+"-"+title+".png";
                         
                         if ("error" in json.suites[testSuiteSequence].specs[0].tests[0].results[0].steps[testStep]) {
-                          image = json.suites[testSuiteSequence].specs[0].tests[0].results[0].attachments[0].path.split('/').slice(-3).join('/');
+                            image = json.suites[testSuiteSequence].specs[0].tests[0].results[0].attachments[0].path.split('/').slice(-3).join('/');
                         }
-                        
+                        else {
+                            testCaseResult = "passed";
+                        }
                         steps.push(this.addStep(title))
                         stepResult.push(this.addStepResultPW(testCaseResult, image))
 
