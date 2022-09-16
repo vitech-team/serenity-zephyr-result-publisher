@@ -160,7 +160,7 @@ class PublishResults {
                             image = json.suites[testSuiteSequence].specs[0].tests[0].results[0].attachments[0].path.split('/').slice(-3).join('/');
                         }
                         else {
-                            testCaseResult = "passed";
+                            testCaseResult = "pass";
                         }
                         steps.push(this.addStep(title))
                         stepResult.push(this.addStepResultPW(testCaseResult, image))
