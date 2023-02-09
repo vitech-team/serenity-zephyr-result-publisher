@@ -90,13 +90,13 @@ class PublishResults {
     async processResults() {
         let cycleKey = await this.zephyr.addTestRunCycle();
         let jsonFiles = this.getListOfFiles();
-        let processFilePromises = jsonFiles.map(async fileNameSequence => {
+        for (const fileNameSequence of jsonFiles) {
             let json = this.readContent(jsonFiles[fileNameSequence]);
             let issueId = await this.jira.getIssueIdByKey(json.coreIssues);
             let folderName = json.featureTag.name.split('/')[0];
             let folderId = await this.zephyr.getFolderIdByTitle(folderName);
             let suiteName = json.featureTag.name.split('/')[1];
-            let processTestCasePromises = json.testSteps.map(async (testCaseSequence) => {
+            for (const testCaseSequence of json.testSteps) {
                 let testCaseName = suiteName;
                 for (let paramSequence = 0; paramSequence < json.dataTable.rows[testCaseSequence].values.length; paramSequence++) {
                     testCaseName = testCaseName + `: ${json.dataTable.rows[testCaseSequence].values[paramSequence]}`;
@@ -107,17 +107,14 @@ class PublishResults {
                 await this.zephyr.addTestCaseIssueLink(testCaseKey, issueId);
                 let testSteps = json.testSteps[testCaseSequence].children;
                 let testCaseResult = this.status[json.testSteps[testCaseSequence].result];
-                let processStepPromises = testSteps.map(async (step) => {
+                testSteps.forEach(step => {
                     steps.push(this.addStep(step.description));
                     stepResult.push(this.addStepResult(step));
                 });
-                await Promise.all(processStepPromises);
                 await this.zephyr.addStepsToTestCase(testCaseKey, steps);
                 await this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult);
-            });
-            await Promise.all(processTestCasePromises);
-        });
-        await Promise.all(processFilePromises);
+            }
+        }
     }
 
 }
