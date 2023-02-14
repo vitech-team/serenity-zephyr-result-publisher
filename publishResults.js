@@ -36,7 +36,6 @@ class PublishResults {
             if (file.includes('json')) {
                 jsonFiles.push(file)
             }
-            ;
         });
         return jsonFiles;
     }
@@ -72,7 +71,7 @@ class PublishResults {
 
     addStepResult(step) {
         let result = {}
-        if (step.result == undefined) {
+        if (step.result === undefined) {
             step.children.forEach(child => {
                 if (['FAILURE', 'ERROR'].includes(child.result)){
                     step = child
