@@ -36,7 +36,6 @@ class PublishResults {
             if (file.includes('json')) {
                 jsonFiles.push(file)
             }
-            ;
         });
         return jsonFiles;
     }
@@ -72,7 +71,7 @@ class PublishResults {
 
     addStepResult(step) {
         let result = {}
-        if (step.result == undefined) {
+        if (step.result === undefined) {
             step.children.forEach(child => {
                 if (['FAILURE', 'ERROR'].includes(child.result)){
                     step = child
@@ -87,37 +86,37 @@ class PublishResults {
         return result;
     }
 
-    processResults() {
-
-        let cycleKey = this.zephyr.addTestRunCycle()
+    async processResults() {
+        let cycleKey = await this.zephyr.addTestRunCycle();
         let jsonFiles = this.getListOfFiles();
-        for (let fileNameSequence = 0; fileNameSequence < jsonFiles.length; fileNameSequence++) {
+        let processFiles = jsonFiles.map(async (_, fileNameSequence) => {
             let json = this.readContent(jsonFiles[fileNameSequence]);
-            let issueId = this.jira.getIssueIdByKey(json.coreIssues)
+            let issueId = await this.jira.getIssueIdByKey(json.coreIssues);
             let folderName = json.featureTag.name.split('/')[0];
-            let folderId = this.zephyr.getFolderIdByTitle(folderName);
+            let folderId = await this.zephyr.getFolderIdByTitle(folderName);
             let suiteName = json.featureTag.name.split('/')[1];
-            for (let testCaseSequence = 0; testCaseSequence < json.testSteps.length; testCaseSequence++) {
+            let processTestCases = json.testSteps.map(async (_, testCaseSequence) => {
                 let testCaseName = suiteName;
                 for (let paramSequence = 0; paramSequence < json.dataTable.rows[testCaseSequence].values.length; paramSequence++) {
-                    testCaseName = testCaseName + `: ${json.dataTable.rows[testCaseSequence].values[paramSequence]}`
+                    testCaseName = testCaseName + `: ${json.dataTable.rows[testCaseSequence].values[paramSequence]}`;
                 }
-                let steps = []
-                let stepResult = []
-                let testCaseKey = this.zephyr.getTestCaseIdByTitle(testCaseName, folderId)
-                this.zephyr.addTestCaseIssueLink(testCaseKey, issueId)
+                let steps = [];
+                let stepResult = [];
+                let testCaseKey = await this.zephyr.getTestCaseIdByTitle(testCaseName, folderId);
+                await this.zephyr.addTestCaseIssueLink(testCaseKey, issueId);
                 let testSteps = json.testSteps[testCaseSequence].children;
-                let testCaseResult = this.status[json.testSteps[testCaseSequence].result]
-                testSteps.forEach(step => {
-                    steps.push(this.addStep(step.description))
-                    stepResult.push(this.addStepResult(step))
+                let testCaseResult = this.status[json.testSteps[testCaseSequence].result];
+                let processStepPromises = testSteps.map(async (step) => {
+                    steps.push(this.addStep(step.description));
+                    stepResult.push(this.addStepResult(step));
                 });
-                this.zephyr.addStepsToTestCase(testCaseKey, steps)
-                this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult)
-            }
-
-        }
-
+                await Promise.all(processStepPromises);
+                await this.zephyr.addStepsToTestCase(testCaseKey, steps);
+                await this.zephyr.publishResults(cycleKey, testCaseKey, testCaseResult, stepResult);
+            });
+            await Promise.all(processTestCases);
+        });
+        await Promise.all(processFiles);
     }
 
 }

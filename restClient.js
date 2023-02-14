@@ -1,4 +1,4 @@
-const request = require("sync-request");
+const axios = require("axios");
 
 /**
  * Rest client
@@ -47,8 +47,8 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _post(api, body, error = undefined, skipError = false) {
-        return this._request("POST", api, body, error, skipError);
+    _post(api, body, error = undefined, headers = this.headers) {
+        return this._request("POST", api, body, error, headers);
     }
 
     /**
@@ -98,25 +98,25 @@ class RestClient {
      * @returns {*}
      * @private
      */
-    _request(method, api, body = undefined, error = undefined, skipError = false) {
-        const option = {
-            headers: this.headers
-        };
-        if (body) {
-            option["json"] = body
-        }
+    async _request(method, api, body = undefined, error = undefined, headers = this.headers) {
         let count = 0;
         let maxTries = process.env.MAX_RETRY || 3;
-        while (true && !skipError) {
-            try {
-                let result = request(method, this._url(api), option);
-                return JSON.parse(result.getBody('utf8'));
-            } catch (error) {
-                if (++count === maxTries) throw error;
-            }
-        }
-        if (skipError) {
-            return request(method, this._url(api), option);
+        try {
+            let result = await axios({
+                method: method,
+                url: this._url(api),
+                headers: headers,
+                data: body
+            }).catch((error) => {console.error(error)});
+            await console.log(`Request: ${method} ${this._url(api)} ${result.status}`);
+            return result.data;
+        } catch (error) {
+            if (++count === maxTries) throw {
+                "method": method,
+                "api": this._url(api),
+                "body": body,
+                "error": error
+            };
         }
     }
 
