@@ -42,13 +42,13 @@ class ZephyrScaleClient extends RestClient {
      * @param testRunName
      * @return testRunId of created testRun
      */
-    addTestRunCycle(projectKey = this.options.projectKey, testRunName = `Run: ${process.env.RUN_ID} / Branch: ${process.env.BRANCH_NAME} (${this.getDateNow()})`, folderId = this.options.testCycleFolder) {
+    async addTestRunCycle(projectKey = this.options.projectKey, testRunName = `Run: ${process.env.RUN_ID} / Branch: ${process.env.BRANCH_NAME} (${this.getDateNow()})`, folderId = this.options.testCycleFolder) {
         let requestBody = {
             "projectKey": projectKey,
             "name": testRunName,
             "folderId": folderId
         }
-        let response = this._post(`testcycles`, requestBody)
+        let response = await this._post(`testcycles`, requestBody)
         return response['key'];
     }
 
@@ -58,7 +58,7 @@ class ZephyrScaleClient extends RestClient {
      * @param folderId
      * @return testCaseId of created testCase
      */
-    addTestCase(name, folderId) {
+    async addTestCase(name, folderId) {
         let requestBody = {
             "projectKey": this.options.projectKey,
             "name": name,
@@ -66,7 +66,7 @@ class ZephyrScaleClient extends RestClient {
             "statusName": 'Approved',
             "ownerId": this.options.ownerId
         }
-        let response = this._post(`testcases`, requestBody)
+        let response = await this._post(`testcases`, requestBody)
         return response['key']
     }
 
@@ -75,12 +75,12 @@ class ZephyrScaleClient extends RestClient {
      * @param testCaseId
      * @param steps
      */
-    addStepsToTestCase(testCaseId, steps) {
+    async addStepsToTestCase(testCaseId, steps) {
         let requestBody = {
             "mode": "OVERWRITE",
             "items": steps
         }
-        this._post(`testcases/${testCaseId}/teststeps`, requestBody)
+        await this._post(`testcases/${testCaseId}/teststeps`, requestBody)
     }
 
     /**
@@ -88,14 +88,14 @@ class ZephyrScaleClient extends RestClient {
      * @param name
      * @return folderId of created section
      */
-    addFolderId(name, parentId = this.options.parentId) {
+    async addFolderId(name, parentId = this.options.parentId) {
         let requestBody = {
             "name": name,
             "parentId": parentId,
             "projectKey": this.options.projectKey,
             "folderType": "TEST_CASE"
         }
-        let response = this._post(`folders`, requestBody)
+        let response = await this._post(`folders`, requestBody)
         return response['id']
     }
 
@@ -143,8 +143,8 @@ class ZephyrScaleClient extends RestClient {
      * @param folderId
      * @return testCaseId
      */
-    getTestCaseIdByTitle(title, folderId) {
-        let data = this._get(`testcases?projectKey=${this.options.projectKey}&folderId=${folderId}&maxResults=4000`)
+    async getTestCaseIdByTitle(title, folderId) {
+        let data = await this._get(`testcases?projectKey=${this.options.projectKey}&folderId=${folderId}&maxResults=4000`)
         data = data.values
         data = this.getDataDictByParams(data, 'name', 'key')
         let cases = [];
@@ -156,7 +156,7 @@ class ZephyrScaleClient extends RestClient {
         if (cases.length > 1) {
             throw new Error(`In section ${folderId} were found ${cases.length} cases with the same test case name - ${title}`)
         } else if (cases.length === 0) {
-            return this.addTestCase(title, folderId)
+            return await this.addTestCase(title, folderId)
         } else {
             return cases[0]
         }
@@ -169,11 +169,11 @@ class ZephyrScaleClient extends RestClient {
      * @param folderName
      * @return folderId
      */
-    getFolderIdByTitle(folderName, title) {
+    async getFolderIdByTitle(folderName, title) {
         if (folderName === undefined) {
             throw new Error(`TestCase "${title}" does not have suite name, please add it`)
         }
-        let data = this._get(`folders?projectKey=${this.options.projectKey}&folderType=TEST_CASE&maxResults=200`)
+        let data = await this._get(`folders?projectKey=${this.options.projectKey}&folderType=TEST_CASE&maxResults=200`)
         data = data.values
         data = this.filterJson(data, 'parentId', this.options.parentId)
         data = this.getDataDictByParams(data, 'name', 'id')
@@ -186,7 +186,7 @@ class ZephyrScaleClient extends RestClient {
         if (folders.length > 1) {
             throw new Error(`In project ${this.options.projectKey} were found ${folders.length} folders with the same folder name - ${name}`)
         } else if (folders.length === 0) {
-            return this.addFolderId(folderName)
+            return await this.addFolderId(folderName)
         } else {
             return folders[0]
         }
@@ -197,13 +197,13 @@ class ZephyrScaleClient extends RestClient {
      * @param testCaseId
      * @param issueId
      */
-    addTestCaseIssueLink(testCaseKey, issueId) {
+    async addTestCaseIssueLink(testCaseKey, issueId) {
         if (issueId) {
             for (let i in issueId) {
                 let requestBody = {
                     "issueId": issueId[i]
                 }
-                this._post(`testcases/${testCaseKey}/links/issues`, requestBody, undefined, true)
+                await this._post(`testcases/${testCaseKey}/links/issues`, requestBody, undefined, true)
             }
         }
     }
@@ -213,7 +213,7 @@ class ZephyrScaleClient extends RestClient {
      * @param cases
      * @param results
      */
-    publishResults(cycleKey, testCaseKey, testCaseResult, stepResult) {
+    async publishResults(cycleKey, testCaseKey, testCaseResult, stepResult) {
         let requestBody = {
             "projectKey": this.options.projectKey,
             "testCycleKey": cycleKey,
@@ -221,7 +221,7 @@ class ZephyrScaleClient extends RestClient {
             "statusName": testCaseResult,
             "testScriptResults": stepResult
         }
-        this._post(`testexecutions`, requestBody, undefined)
+        await this._post(`testexecutions`, requestBody, undefined)
     }
 
 }
