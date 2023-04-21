@@ -30,11 +30,11 @@ class JiraClient extends RestClient {
      * @param issueKey
      * @return issueId
      */
-    getIssueIdByKey(issueKeys) {
+    async getIssueIdByKey(issueKeys) {
         let result = []
         if (issueKeys) {
             for (let i in issueKeys){
-            let response = this._get(`issue/${issueKeys[i]}`)
+            let response = await this._get(`issue/${issueKeys[i]}`);
             result.push(response['id'])
         }}
         return result
