@@ -23,6 +23,7 @@ class ZephyrScaleClient extends RestClient {
             "Authorization": `Bearer ${this.options.apiToken}`,
             "Content-Type": "application/json; charset=utf-8"
         }
+        this.data = null;
 
     }
 
@@ -173,10 +174,12 @@ class ZephyrScaleClient extends RestClient {
         if (folderName === undefined) {
             throw new Error(`TestCase "${title}" does not have suite name, please add it`)
         }
-        let data = await this._get(`folders?projectKey=${this.options.projectKey}&folderType=TEST_CASE&maxResults=200`)
-        data = data.values
-        data = this.filterJson(data, 'parentId', this.options.parentId)
-        data = this.getDataDictByParams(data, 'name', 'id')
+        if (!this.data) {
+            this.data = await this._get(`folders?projectKey=${this.options.projectKey}&folderType=TEST_CASE&maxResults=200`);
+        }
+        this.data = data.values
+        this.data = this.filterJson(data, 'parentId', this.options.parentId)
+        this.data = this.getDataDictByParams(data, 'name', 'id')
         let folders = [];
         for (let name in data) {
             if (name === folderName) {
