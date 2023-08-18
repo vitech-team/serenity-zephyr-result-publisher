@@ -23,7 +23,7 @@ class ZephyrScaleClient extends RestClient {
             "Authorization": `Bearer ${this.options.apiToken}`,
             "Content-Type": "application/json; charset=utf-8"
         }
-
+        this.folderData = null;
     }
 
 
@@ -169,26 +169,39 @@ class ZephyrScaleClient extends RestClient {
      * @param folderName
      * @return folderId
      */
-    async getFolderIdByTitle(folderName, title) {
-        if (folderName === undefined) {
-            throw new Error(`TestCase "${title}" does not have suite name, please add it`)
-        }
-        let data = await this._get(`folders?projectKey=${this.options.projectKey}&folderType=TEST_CASE&maxResults=200`)
-        data = data.values
-        data = this.filterJson(data, 'parentId', this.options.parentId)
-        data = this.getDataDictByParams(data, 'name', 'id')
-        let folders = [];
-        for (let name in data) {
-            if (name === folderName) {
-                folders.push(data[name])
+
+    async fetchFolderData() {
+        if (!this.folderData) {
+            try {
+                this.folderData = await this._get(`folders?projectKey=${this.options.projectKey}&folderType=TEST_CASE&maxResults=200`);
+                this.folderData = this.folderData.values || [];
+            } catch (error) {
+                throw new Error(`Error while fetching folder data: ${error.message}`);
             }
         }
-        if (folders.length > 1) {
-            throw new Error(`In project ${this.options.projectKey} were found ${folders.length} folders with the same folder name - ${name}`)
-        } else if (folders.length === 0) {
-            return await this.addFolderId(folderName)
-        } else {
-            return folders[0]
+    }
+
+    async getFolderIdByTitle(folderName, title) {
+        if (folderName === undefined) {
+            throw new Error(`TestCase "${title}" does not have a suite name. Please add it.`);
+        }
+
+        try {
+            await this.fetchFolderData();
+
+            let data = this.filterJson(this.folderData, 'parentId', this.options.parentId);
+            data = this.getDataDictByParams(data, 'name', 'id');
+
+            let folderId = data[folderName];
+
+            if (!folderId) {
+                // Folder not found, create it
+                return await this.addFolderId(folderName);
+            } else {
+                return folderId;
+            }
+        } catch (error) {
+            throw new Error(`Error while processing folder data: ${error.message}`);
         }
     }
 
