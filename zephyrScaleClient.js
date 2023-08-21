@@ -177,13 +177,13 @@ class ZephyrScaleClient extends RestClient {
         if (!this.data) {
             this.data = await this._get(`folders?projectKey=${this.options.projectKey}&folderType=TEST_CASE&maxResults=200`);
         }
-        this.data = data.values
-        this.data = this.filterJson(data, 'parentId', this.options.parentId)
-        this.data = this.getDataDictByParams(data, 'name', 'id')
+        this.data = this.data.values
+        this.data = this.filterJson(this.data, 'parentId', this.options.parentId)
+        this.data = this.getDataDictByParams(this.data, 'name', 'id')
         let folders = [];
-        for (let name in data) {
+        for (let name in this.data) {
             if (name === folderName) {
-                folders.push(data[name])
+                folders.push(this.data[name])
             }
         }
         if (folders.length > 1) {
