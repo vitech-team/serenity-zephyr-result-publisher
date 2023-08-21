@@ -62,7 +62,7 @@ class ZephyrScaleClient extends RestClient {
     }
 
     filterJson(json, key, value) {
-        return json.filter(item => item[key] == value);
+        return json.filter(item => item[key] === value);
     }
 
     async getDataDictFromApiByParams(api, key, value) {
