@@ -98,26 +98,31 @@ class RestClient {
      * @returns {*}
      * @private
      */
+
     async _request(method, api, body = undefined, error = undefined, headers = this.headers) {
         let count = 0;
         let maxTries = process.env.MAX_RETRY || 3;
-        try {
-            let result = await axios({
-                method: method,
-                url: this._url(api),
-                headers: headers,
-                data: body
-            }).catch((error) => {console.error(error)});
-            await console.log(`Request: ${method} ${this._url(api)} ${result.status}`);
-            return result.data;
-        } catch (error) {
-            if (++count === maxTries) throw {
-                "method": method,
-                "api": this._url(api),
-                "body": body,
-                "error": error
-            };
+        while (count < maxTries) {
+            try {
+                let result = await axios({
+                    method: method,
+                    url: this._url(api),
+                    headers: headers,
+                    data: body
+                });
+                console.log(`Request: ${method} ${this._url(api)} ${result.status}`);
+                return result.data;
+            } catch (error) {
+                console.error(error);
+                count++;
+            }
         }
+        throw {
+            "method": method,
+            "api": this._url(api),
+            "body": body,
+            "error": "Max retries exceeded"
+        };
     }
 
 

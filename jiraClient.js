@@ -22,7 +22,7 @@ class JiraClient extends RestClient {
             "Authorization": `Basic ${this.options.apiToken}`,
             "Content-Type": "application/json; charset=utf-8"
         }
-
+        this.apiCache = new Map(); // Створюємо мапу для кешування результатів API викликів
     }
 
     /**
@@ -31,13 +31,25 @@ class JiraClient extends RestClient {
      * @return issueId
      */
     async getIssueIdByKey(issueKeys) {
-        let result = []
+        let result = [];
+
         if (issueKeys) {
-            for (let i in issueKeys){
-            let response = await this._get(`issue/${issueKeys[i]}`);
-            result.push(response['id'])
-        }}
-        return result
+            for (let i in issueKeys) {
+                let issueKey = issueKeys[i];
+                let cachedResponse = this.apiCache.get(`getIssueIdByKey:${issueKey}`);
+
+                if (cachedResponse) {
+                    result.push(cachedResponse);
+                } else {
+                    let response = await this._get(`issue/${issueKey}`);
+                    let issueId = response['id'];
+                    result.push(issueId);
+                    this.apiCache.set(`getIssueIdByKey:${issueKey}`, issueId); // Зберігаємо результат у кеші
+                }
+            }
+        }
+
+        return result;
     }
 
 
