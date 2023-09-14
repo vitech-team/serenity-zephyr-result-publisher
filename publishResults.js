@@ -95,7 +95,7 @@ class PublishResults {
             let folderNameNotFormatted = json.userStory.path.split('.').at(-2);
             let folderName = folderNameNotFormatted.charAt(0).toUpperCase() + folderNameNotFormatted.slice(1);
             let folderId = await this.zephyr.getFolderIdByTitle(folderName);
-            let suiteName = json.userStory.path.split('.').at(-1);
+            let suiteName = json.title;
             let processTestCases = json.testSteps.map(async (_, testCaseSequence) => {
                 let testCaseName = suiteName;
                 for (let paramSequence = 0; paramSequence < json.dataTable.rows[testCaseSequence].values.length; paramSequence++) {
