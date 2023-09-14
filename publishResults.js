@@ -92,10 +92,9 @@ class PublishResults {
         let processFiles = jsonFiles.map(async (_, fileNameSequence) => {
             let json = this.readContent(jsonFiles[fileNameSequence]);
             let issueId = await this.jira.getIssueIdByKey(json.issues);
-            let featureNameAndSuite = json.userStory.path.split('.')[3];
-            let folderName = featureNameAndSuite.split('/')[0];
+            let folderName = json.userStory.path.split('.').at(-2);
             let folderId = await this.zephyr.getFolderIdByTitle(folderName);
-            let suiteName = featureNameAndSuite.split('/')[1];
+            let suiteName = json.userStory.path.split('.').at(-1);
             let processTestCases = json.testSteps.map(async (_, testCaseSequence) => {
                 let testCaseName = suiteName;
                 for (let paramSequence = 0; paramSequence < json.dataTable.rows[testCaseSequence].values.length; paramSequence++) {
