@@ -117,9 +117,25 @@ class PublishResults {
             });
             await Promise.all(processTestCases);
         });
-        await Promise.all(processFiles);
+        await chunkRequests(processFiles, 290000);
     }
 
 }
+
+async function chunkRequests(urls, chunkSize) {
+    const results = [];
+    for (let i = 0; i < urls.length; i += chunkSize) {
+        const chunk = urls.slice(i, i + chunkSize);
+        results.push(...await Promise.all(chunk));
+        await delay(60000);
+    }
+    return results;
+}
+function delay(duration) {
+    return new Promise(resolve => setTimeout(resolve, duration));
+}
+
+
+
 
 module.exports = PublishResults;
