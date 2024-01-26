@@ -102,7 +102,7 @@ class RestClient {
         let count = 0;
         let maxTries = process.env.MAX_RETRY || 3;
         try {
-            let result = fetchWithRetry({
+            let result = await fetchWithRetry({
                 method: method,
                     url: this._url(api),
                     headers: headers,
