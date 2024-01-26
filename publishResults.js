@@ -117,36 +117,9 @@ class PublishResults {
             });
             await Promise.all(processTestCases);
         });
-        await fetchWithRetry(processFiles);
+        await Promise.all(processFiles);
     }
 
 }
-
-function delay(duration) {
-    return new Promise(resolve => setTimeout(resolve, (++duration) * 1000));
-}
-
-async function fetchWithRetry(requests, maxRetries = 3) {
-    let retries = 0;
-    while (retries < maxRetries) {
-        try {
-            return Promise.all(requests);
-        } catch (error) {
-            if (error.response && error.response.status === 429) {
-                const retryAfter = error.response.headers['retry-after'];
-                if (retryAfter && !isNaN(retryAfter)) {
-                    await delay(Number(retryAfter));
-                    retries++;
-                } else {
-                    throw error;
-                }
-            } else {
-                throw error;
-            }
-        }
-    }
-    throw new Error('Max retries reached');
-}
-
 
 module.exports = PublishResults;
