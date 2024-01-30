@@ -102,11 +102,11 @@ class RestClient {
         let count = 0;
         let maxTries = process.env.MAX_RETRY || 3;
         try {
-            let result = await axios({
+            let result = await fetchWithRetry({
                 method: method,
-                url: this._url(api),
-                headers: headers,
-                data: body
+                    url: this._url(api),
+                    headers: headers,
+                    data: body
             }).catch((error) => {console.error(error)});
             await console.log(`Request: ${method} ${this._url(api)} ${result.status}`);
             return result.data;
@@ -124,3 +124,28 @@ class RestClient {
 }
 
 module.exports = RestClient;
+function delay(duration) {
+    return new Promise(resolve => setTimeout(resolve, (++duration) * 1000));
+}
+
+async function fetchWithRetry(requests, maxRetries = 3) {
+    let retries = 0;
+    while (retries < maxRetries) {
+        try {
+            return await axios(requests);
+        } catch (error) {
+            if (error.response && error.response.status === 429) {
+                const retryAfter = error.response.headers['retry-after'];
+                if (retryAfter && !isNaN(retryAfter)) {
+                    await delay(Number(retryAfter));
+                    retries++;
+                } else {
+                    throw error;
+                }
+            } else {
+                throw error;
+            }
+        }
+    }
+    throw new Error('Max retries reached');
+}
