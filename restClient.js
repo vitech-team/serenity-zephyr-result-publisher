@@ -1,4 +1,5 @@
 const axios = require("axios");
+const https = require("https");
 
 /**
  * Rest client
@@ -129,6 +130,8 @@ function delay(duration) {
 }
 
 async function fetchWithRetry(requests, maxRetries = 3) {
+    axios.defaults.timeout = 30000;
+    axios.defaults.httpsAgent = new https.Agent({ keepAlive: true });
     let retries = 0;
     while (retries < maxRetries) {
         try {
