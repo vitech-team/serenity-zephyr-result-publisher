@@ -99,7 +99,14 @@ class PublishResults {
             let processTestCases = json.testSteps.map(async (_, testCaseSequence) => {
                 let testCaseName = suiteName;
                 for (let paramSequence = 0; paramSequence < json.dataTable.rows[testCaseSequence].values.length; paramSequence++) {
-                    testCaseName = testCaseName + `: ${json.dataTable.rows[testCaseSequence].values[paramSequence]}`;
+                    const valuesArray = json.dataTable.rows[testCaseSequence].values[paramSequence];
+                    const isValueString = typeof valuesArray === 'string';
+
+                    const paramValues = isValueString
+                        ? `: ${valuesArray}`
+                        : `: ${Object.values(valuesArray).join(',')}`;
+
+                    testCaseName = testCaseName + paramValues;
                 }
                 let steps = [];
                 let stepResult = [];

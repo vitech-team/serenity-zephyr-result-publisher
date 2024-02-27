@@ -137,7 +137,7 @@ async function fetchWithRetry(requests, maxRetries = 3) {
         try {
             return await axios(requests);
         } catch (error) {
-            const retryErrors = [429, 401];
+            const retryErrors = [429, 401, 503];
             if (error.response && retryErrors.includes(error.response.status)) {
                 const retryAfter = error.response.headers['retry-after'] ?? 120;
                 if (retryAfter && !isNaN(retryAfter)) {
