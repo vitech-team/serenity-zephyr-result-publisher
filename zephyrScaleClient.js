@@ -203,7 +203,7 @@ class ZephyrScaleClient extends RestClient {
                 let requestBody = {
                     "issueId": issueId[i]
                 }
-                await this._post(`testcases/${testCaseKey}/links/issues`, requestBody, undefined, true)
+                await this._post(`testcases/${testCaseKey}/links/issues`, requestBody, undefined, this.headers)
             }
         }
     }
