@@ -144,7 +144,7 @@ class ZephyrScaleClient extends RestClient {
      * @return testCaseId
      */
     async getTestCaseIdByTitle(title, folderId) {
-        let data = await this._get(`testcases?projectKey=${this.options.projectKey}&folderId=${folderId}&maxResults=4000`)
+        let data = await this._get(`testcases?projectKey=${this.options.projectKey}&folderId=${folderId}&maxResults=6000`)
         data = data.values
         data = this.getDataDictByParams(data, 'name', 'key')
         let cases = [];
