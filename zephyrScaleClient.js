@@ -183,10 +183,10 @@ class ZephyrScaleClient extends RestClient {
                 folders.push(data[name])
             }
         }
-        if (folders.length > 0) {
-            return folders[folders.length - 1]
-        } else {
+        if (folders.length === 0) {
             return await this.addFolderId(folderName)
+        } else {
+            return folders[0]
         }
     }
 
