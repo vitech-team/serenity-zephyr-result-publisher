@@ -173,7 +173,7 @@ class ZephyrScaleClient extends RestClient {
         if (folderName === undefined) {
             throw new Error(`TestCase "${title}" does not have suite name, please add it`)
         }
-        let data = await this._get(`folders?projectKey=${this.options.projectKey}&folderType=TEST_CASE&maxResults=200`)
+        let data = await this._get(`folders?projectKey=${this.options.projectKey}&folderId=${this.options.parentId}&folderType=TEST_CASE&maxResults=200`)
         data = data.values
         data = this.filterJson(data, 'parentId', this.options.parentId)
         data = this.getDataDictByParams(data, 'name', 'id')
@@ -183,9 +183,7 @@ class ZephyrScaleClient extends RestClient {
                 folders.push(data[name])
             }
         }
-        if (folders.length > 1) {
-            throw new Error(`In project ${this.options.projectKey} were found ${folders.length} folders with the same folder name - ${name}`)
-        } else if (folders.length === 0) {
+        if (folders.length === 0) {
             return await this.addFolderId(folderName)
         } else {
             return folders[0]
