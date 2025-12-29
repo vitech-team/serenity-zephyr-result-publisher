@@ -23,7 +23,7 @@ class PublishReactTestResults extends BasePublisher {
     }
 
     cleanTestTitle(title) {
-        return title.replace(/\[ED-\d{1,6}\]\s*/, '').trim();
+        return title.replace(/\[ED-\d{1,6}]\s*/, '').trim();
     }
 
     groupTestsByJiraKey(testResults) {
@@ -103,13 +103,11 @@ class PublishReactTestResults extends BasePublisher {
 
                 const folderName = tests[0].ancestorTitles[0];
                 const folderId = await this.zephyr.getFolderIdByTitle(folderName);
-                console.log(`  Using folder: ${folderName} (ID: ${folderId})`);
 
                 const jiraTicketTitle = await this.jira.getIssueSummaryByKey(jiraKey);
-                console.log(`  Jira ticket title: ${jiraTicketTitle}`);
+                const testCaseName = `${jiraTicketTitle} verifications`;
 
-                const testCaseKey = await this.zephyr.getTestCaseIdByTitle(jiraTicketTitle, folderId);
-                console.log(`  Test case key: ${testCaseKey}`);
+                const testCaseKey = await this.zephyr.getTestCaseIdByTitle(testCaseName, folderId);
 
                 const issueId = await this.jira.getIssueIdByKey([jiraKey]);
                 await this.zephyr.addTestCaseIssueLink(testCaseKey, issueId);
