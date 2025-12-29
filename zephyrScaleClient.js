@@ -183,12 +183,10 @@ class ZephyrScaleClient extends RestClient {
                 folders.push(data[name])
             }
         }
-        if (folders.length > 1) {
-            throw new Error(`In project ${this.options.projectKey} were found ${folders.length} folders with the same folder name - ${name}`)
-        } else if (folders.length === 0) {
-            return await this.addFolderId(folderName)
+        if (folders.length > 0) {
+            return folders[folders.length - 1]
         } else {
-            return folders[0]
+            return await this.addFolderId(folderName)
         }
     }
 
