@@ -208,18 +208,35 @@ class ZephyrScaleClient extends RestClient {
         }
     }
 
+    async getTestCaseIssueLinks(testCaseKey) {
+        try {
+            let data = await this._get(`testcases/${testCaseKey}/links/issues`);
+            return data.values ? data.values.map(link => link.issueId) : [];
+        } catch (error) {
+            console.error(`Failed to fetch links for ${testCaseKey}:`, error);
+            return [];
+        }
+    }
+
     /**
-     * Add link between testCase in Zephyr and Jira ticket
-     * @param testCaseId
+     * Add link between testCase in Zephyr and Jira ticket (only if not already linked)
+     * @param testCaseKey
      * @param issueId
      */
     async addTestCaseIssueLink(testCaseKey, issueId) {
         if (issueId) {
+            const existingLinks = await this.getTestCaseIssueLinks(testCaseKey);
+
             for (let i in issueId) {
-                let requestBody = {
-                    "issueId": issueId[i]
+                if (!existingLinks.includes(issueId[i])) {
+                    let requestBody = {
+                        "issueId": issueId[i]
+                    }
+                    await this._post(`testcases/${testCaseKey}/links/issues`, requestBody, undefined, this.headers)
+                    console.log(`Linked test case ${testCaseKey} to issue ${issueId[i]}`);
+                } else {
+                    console.log(`Test case ${testCaseKey} already linked to issue ${issueId[i]}, skipping`);
                 }
-                await this._post(`testcases/${testCaseKey}/links/issues`, requestBody, undefined, this.headers)
             }
         }
     }
