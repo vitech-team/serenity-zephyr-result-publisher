@@ -82,13 +82,27 @@ class PublishReactTestResults extends BasePublisher {
     }
 
 
+    groupTestsByAncestorTitle(tests) {
+        const grouped = {};
+
+        tests.forEach(test => {
+            const ancestorTitle = test.ancestorTitles[0];
+            if (!grouped[ancestorTitle]) {
+                grouped[ancestorTitle] = [];
+            }
+            grouped[ancestorTitle].push(test);
+        });
+
+        return grouped;
+    }
+
     async processResults() {
         console.log('Starting React test results processing...');
 
         const testResults = this.readReactTestResults();
-        const groupedTests = this.groupTestsByJiraKey(testResults);
+        const groupedTestsByJiraKey = this.groupTestsByJiraKey(testResults);
 
-        if (Object.keys(groupedTests).length === 0) {
+        if (Object.keys(groupedTestsByJiraKey).length === 0) {
             console.log('No tests with Jira ticket references found. Exiting.');
             return;
         }
@@ -96,30 +110,36 @@ class PublishReactTestResults extends BasePublisher {
         const cycleKey = await this.zephyr.addTestRunCycle();
         console.log(`Created test cycle: ${cycleKey}`);
 
-        const processTickets = Object.keys(groupedTests).map(async (jiraKey) => {
+        const processTickets = Object.keys(groupedTestsByJiraKey).map(async (jiraKey) => {
             try {
                 console.log(`Processing ${jiraKey}...`);
-                const tests = groupedTests[jiraKey];
+                const tests = groupedTestsByJiraKey[jiraKey];
 
-                const folderName = tests[0].ancestorTitles[0];
-                const folderId = await this.zephyr.getFolderIdByTitle(folderName);
+                const testsByAncestor = this.groupTestsByAncestorTitle(tests);
 
                 const jiraTicketTitle = await this.jira.getIssueSummaryByKey(jiraKey);
+                const issueId = await this.jira.getIssueIdByKey([jiraKey]);
                 const testCaseName = `${jiraTicketTitle} verifications`;
 
-                const testCaseKey = await this.zephyr.getTestCaseIdByTitle(testCaseName, folderId);
+                const processAncestorGroups = Object.keys(testsByAncestor).map(async (ancestorTitle) => {
+                    const ancestorTests = testsByAncestor[ancestorTitle];
 
-                const issueId = await this.jira.getIssueIdByKey([jiraKey]);
-                await this.zephyr.addTestCaseIssueLink(testCaseKey, issueId);
+                    const folderName = ancestorTitle + " verifications by React Tests";
+                    const folderId = await this.zephyr.getFolderIdByTitle(folderName);
 
-                const steps = tests.map(test => this.addStep(test.title));
-                await this.zephyr.addStepsToTestCase(testCaseKey, steps);
+                    const testCaseKey = await this.zephyr.getTestCaseIdByTitle(testCaseName, folderId);
+                    await this.zephyr.addTestCaseIssueLink(testCaseKey, issueId);
 
-                const stepResults = tests.map(test => this.addStepResult(test));
+                    const steps = ancestorTests.map(test => this.addStep(test.title));
+                    await this.zephyr.addStepsToTestCase(testCaseKey, steps);
 
-                const overallStatus = this.getOverallTestCaseStatus(tests);
+                    const stepResults = ancestorTests.map(test => this.addStepResult(test));
+                    const overallStatus = this.getOverallTestCaseStatus(ancestorTests);
 
-                await this.zephyr.publishResults(cycleKey, testCaseKey, overallStatus, stepResults);
+                    await this.zephyr.publishResults(cycleKey, testCaseKey, overallStatus, stepResults);
+                });
+
+                await Promise.all(processAncestorGroups);
 
             } catch (error) {
                 console.error(`Error processing ${jiraKey}:`, error);
