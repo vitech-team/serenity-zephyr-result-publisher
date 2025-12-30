@@ -69,6 +69,8 @@ class PublishReactTestResults extends BasePublisher {
                 actualResult += escapedMsg + '<br>';
             });
             result.actualResult = actualResult;
+        } else {
+            result.actualResult = 'Verified';
         }
 
         return result;
@@ -85,8 +87,6 @@ class PublishReactTestResults extends BasePublisher {
 
         const testResults = this.readReactTestResults();
         const groupedTests = this.groupTestsByJiraKey(testResults);
-
-        console.log(`Found ${Object.keys(groupedTests).length} Jira tickets with associated tests`);
 
         if (Object.keys(groupedTests).length === 0) {
             console.log('No tests with Jira ticket references found. Exiting.');
@@ -111,18 +111,15 @@ class PublishReactTestResults extends BasePublisher {
 
                 const issueId = await this.jira.getIssueIdByKey([jiraKey]);
                 await this.zephyr.addTestCaseIssueLink(testCaseKey, issueId);
-                console.log(`  Linked test case to ${jiraKey}`);
 
                 const steps = tests.map(test => this.addStep(test.title));
                 await this.zephyr.addStepsToTestCase(testCaseKey, steps);
-                console.log(`  Added ${steps.length} steps to test case`);
 
                 const stepResults = tests.map(test => this.addStepResult(test));
 
                 const overallStatus = this.getOverallTestCaseStatus(tests);
 
                 await this.zephyr.publishResults(cycleKey, testCaseKey, overallStatus, stepResults);
-                console.log(`  Published results with status: ${overallStatus}`);
 
             } catch (error) {
                 console.error(`Error processing ${jiraKey}:`, error);

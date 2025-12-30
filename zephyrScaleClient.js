@@ -107,23 +107,6 @@ class ZephyrScaleClient extends RestClient {
     }
 
     /**
-     * Gets data from api endpoint and returns data matched to key and value
-     * @param api
-     * @param key
-     * @param value
-     * @return {{}}
-     */
-    getDataDictFromApiByParams(api, key, value) {
-        let data = this._get(api)
-        data = data.values
-        let dict = {};
-        for (let i = 0; i < data.length; i++) {
-            dict[data[i][key]] = data[i][value];
-        }
-        return dict
-    }
-
-    /**
      * Gets data and returns data matched to key and value
      * @param data
      * @param key
@@ -207,7 +190,7 @@ class ZephyrScaleClient extends RestClient {
      */
     async getFolderIdByTitle(folderName) {
         if (folderName === undefined) {
-            throw new Error('Folder name is undefined. Please check the test suite configuration.');
+            throw new Error(`Test case is missing a suite name (folder name is undefined)`)
         }
         let data = await this._getFoldersData();
         data = this.filterJson(data, 'parentId', this.options.parentId)
