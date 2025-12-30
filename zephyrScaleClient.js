@@ -23,6 +23,7 @@ class ZephyrScaleClient extends RestClient {
             "Authorization": `Bearer ${this.options.apiToken}`,
             "Content-Type": "application/json; charset=utf-8"
         }
+        this.foldersCache = null;
 
     }
 
@@ -96,6 +97,7 @@ class ZephyrScaleClient extends RestClient {
             "folderType": "TEST_CASE"
         }
         let response = await this._post(`folders`, requestBody)
+        this._invalidateFoldersCache();
         return response['id']
     }
 
@@ -163,18 +165,51 @@ class ZephyrScaleClient extends RestClient {
     }
 
     /**
+     * Fetches and caches all folders
+     * @return folders data
+     */
+    async _getFoldersData() {
+
+        if (this.foldersCache === null) {
+            const allFolders = [];
+            let startAt = 0;
+            const maxResults = 1000;
+            let isLast = false;
+
+            while (!isLast) {
+                const data = await this._get(`folders?projectKey=${this.options.projectKey}&folderType=TEST_CASE&maxResults=${maxResults}&startAt=${startAt}`);
+                if (data && Array.isArray(data.values)) {
+                    allFolders.push(...data.values);
+                    isLast = data.isLast;
+                    startAt += data.values.length;
+                } else {
+                    isLast = true;
+                }
+            }
+            this.foldersCache = allFolders;
+        }
+
+        return this.foldersCache;
+    }
+
+    /**
+     * Invalidates the folders cache
+     */
+    _invalidateFoldersCache() {
+        this.foldersCache = null;
+    }
+
+    /**
      * Gets folderId based on title
      * in cases there is no such section, it will be created
-     * @param title
      * @param folderName
      * @return folderId
      */
-    async getFolderIdByTitle(folderName, title) {
+    async getFolderIdByTitle(folderName) {
         if (folderName === undefined) {
-            throw new Error(`TestCase "${title}" does not have suite name, please add it`)
+            throw new Error('Folder name is undefined. Please check the test suite configuration.');
         }
-        let data = await this._get(`folders?projectKey=${this.options.projectKey}&folderId=${this.options.parentId}&folderType=TEST_CASE&maxResults=200`)
-        data = data.values
+        let data = await this._getFoldersData();
         data = this.filterJson(data, 'parentId', this.options.parentId)
         data = this.getDataDictByParams(data, 'name', 'id')
         let folders = [];
