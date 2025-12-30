@@ -124,7 +124,7 @@ class PublishReactTestResults extends BasePublisher {
                 const processAncestorGroups = Object.keys(testsByAncestor).map(async (ancestorTitle) => {
                     const ancestorTests = testsByAncestor[ancestorTitle];
 
-                    const folderName = ancestorTitle + " verifications by React Tests";
+                    const folderName = ancestorTitle + " verifications by Frontend Unit Tests";
                     const folderId = await this.zephyr.getFolderIdByTitle(folderName);
 
                     const testCaseKey = await this.zephyr.getTestCaseIdByTitle(testCaseName, folderId);
