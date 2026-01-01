@@ -39,11 +39,13 @@ class ZephyrScaleClient extends RestClient {
 
     /**
      * Creates testRunCycle in Zephyr Scale via API
-     * @param casprojectKey
-     * @param testRunName
      * @return testRunId of created testRun
+     * @param testRunNamePrefix
+     * @param projectKey
+     * @param folderId
      */
-    async addTestRunCycle(projectKey = this.options.projectKey, testRunName = `Run: ${process.env.RUN_ID} / Branch: ${process.env.BRANCH_NAME} (${this.getDateNow()})`, folderId = this.options.testCycleFolder) {
+    async addTestRunCycle(testRunNamePrefix = "Run:", projectKey = this.options.projectKey, folderId = this.options.testCycleFolder) {
+        let testRunName = `${testRunNamePrefix} ${process.env.RUN_ID} / Branch: ${process.env.BRANCH_NAME} (${this.getDateNow()})`
         let requestBody = {
             "projectKey": projectKey,
             "name": testRunName,

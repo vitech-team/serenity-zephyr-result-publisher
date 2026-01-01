@@ -107,7 +107,7 @@ class PublishReactTestResults extends BasePublisher {
             return;
         }
 
-        const cycleKey = await this.zephyr.addTestRunCycle();
+        const cycleKey = await this.zephyr.addTestRunCycle("Frontend-unit-test-");
         console.log(`Created test cycle: ${cycleKey}`);
 
         const processTickets = Object.keys(groupedTestsByJiraKey).map(async (jiraKey) => {
