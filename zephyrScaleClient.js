@@ -224,7 +224,10 @@ class ZephyrScaleClient extends RestClient {
                     }
                     await this._post(`testcases/${testCaseKey}/links/issues`, requestBody, undefined, this.headers)
                 } catch (error) {
-                    if (error.error && (error.error.status === 400 || error.error.status === 409)) {
+                    const status = error.error?.status || error.error?.response?.status;
+                    const errorMessage = error.error?.response?.data?.message || error.error?.data?.message || '';
+
+                    if (status === 400 && errorMessage.includes('already has a COVERAGE link to the test case')) {
                         console.log(`  Test case ${testCaseKey} already linked to issue ${issueId[i]}, skipping`);
                     } else {
                         console.error(`  Failed to link test case ${testCaseKey} to issue ${issueId[i]}:`, error.error?.statusText || error.message);
