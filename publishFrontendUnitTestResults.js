@@ -21,13 +21,12 @@ class PublishFrontendUnitTestResults extends BasePublisher {
 
         testResults.testResults.forEach(testFile => {
             testFile.assertionResults.forEach(test => {
-                // Only process tests that have an issue field
+
                 if (test.issue) {
                     if (!groupedTests[test.issue]) {
                         groupedTests[test.issue] = [];
                     }
 
-                    // Ensure title starts with "verify"
                     let cleanedTitle = test.title.trim();
                     if (!/^verify\s/i.test(cleanedTitle)) {
                         cleanedTitle = 'Verify ' + cleanedTitle;
@@ -105,18 +104,15 @@ class PublishFrontendUnitTestResults extends BasePublisher {
                 console.log(`Processing ${issueKey}...`);
                 const tests = groupedTestsByIssue[issueKey];
 
-                // Group tests by feature within the same issue
                 const testsByFeature = this.groupTestsByFeature(tests);
 
                 const jiraTicketTitle = await this.jira.getIssueSummaryByKey(issueKey);
                 const issueId = await this.jira.getIssueIdByKey([issueKey]);
                 const testCaseName = `${jiraTicketTitle} verifications`;
 
-                // Process each feature group separately
                 const processFeatureGroups = Object.keys(testsByFeature).map(async (feature) => {
                     const featureTests = testsByFeature[feature];
 
-                    // Use feature as folder name, capitalized
                     const folderName = feature.charAt(0).toUpperCase() + feature.slice(1) + " verifications by Frontend Unit Tests";
                     const folderId = await this.zephyr.getFolderIdByTitle(folderName);
 
@@ -130,8 +126,6 @@ class PublishFrontendUnitTestResults extends BasePublisher {
                     const overallStatus = this.getOverallTestCaseStatus(featureTests);
 
                     await this.zephyr.publishResults(cycleKey, testCaseKey, overallStatus, stepResults);
-
-                    console.log(`  ✓ Processed ${featureTests.length} tests in feature "${feature}"`);
                 });
 
                 await Promise.all(processFeatureGroups);
