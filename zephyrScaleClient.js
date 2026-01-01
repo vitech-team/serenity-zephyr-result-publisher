@@ -39,11 +39,13 @@ class ZephyrScaleClient extends RestClient {
 
     /**
      * Creates testRunCycle in Zephyr Scale via API
-     * @param casprojectKey
-     * @param testRunName
      * @return testRunId of created testRun
+     * @param testRunNamePrefix
+     * @param projectKey
+     * @param folderId
      */
-    async addTestRunCycle(projectKey = this.options.projectKey, testRunName = `Run: ${process.env.RUN_ID} / Branch: ${process.env.BRANCH_NAME} (${this.getDateNow()})`, folderId = this.options.testCycleFolder) {
+    async addTestRunCycle(testRunNamePrefix = "Run:", projectKey = this.options.projectKey, folderId = this.options.testCycleFolder) {
+        let testRunName = `${testRunNamePrefix} ${process.env.RUN_ID} / Branch: ${process.env.BRANCH_NAME} (${this.getDateNow()})`
         let requestBody = {
             "projectKey": projectKey,
             "name": testRunName,
@@ -104,23 +106,6 @@ class ZephyrScaleClient extends RestClient {
     filterJson(json, key, value) {
         let filtered = json.filter(a => a[key] == value);
         return filtered
-    }
-
-    /**
-     * Gets data from api endpoint and returns data matched to key and value
-     * @param api
-     * @param key
-     * @param value
-     * @return {{}}
-     */
-    getDataDictFromApiByParams(api, key, value) {
-        let data = this._get(api)
-        data = data.values
-        let dict = {};
-        for (let i = 0; i < data.length; i++) {
-            dict[data[i][key]] = data[i][value];
-        }
-        return dict
     }
 
     /**
@@ -207,7 +192,7 @@ class ZephyrScaleClient extends RestClient {
      */
     async getFolderIdByTitle(folderName) {
         if (folderName === undefined) {
-            throw new Error('Folder name is undefined. Please check the test suite configuration.');
+            throw new Error(`Test case is missing a suite name (folder name is undefined)`)
         }
         let data = await this._getFoldersData();
         data = this.filterJson(data, 'parentId', this.options.parentId)
@@ -225,18 +210,35 @@ class ZephyrScaleClient extends RestClient {
         }
     }
 
+    async getTestCaseIssueLinks(testCaseKey) {
+        try {
+            let data = await this._get(`testcases/${testCaseKey}/links/issues`);
+            return data.values ? data.values.map(link => link.issueId) : [];
+        } catch (error) {
+            console.error(`Failed to fetch links for ${testCaseKey}:`, error);
+            return [];
+        }
+    }
+
     /**
-     * Add link between testCase in Zephyr and Jira ticket
-     * @param testCaseId
+     * Add link between testCase in Zephyr and Jira ticket (only if not already linked)
+     * @param testCaseKey
      * @param issueId
      */
     async addTestCaseIssueLink(testCaseKey, issueId) {
         if (issueId) {
+            const existingLinks = await this.getTestCaseIssueLinks(testCaseKey);
+
             for (let i in issueId) {
-                let requestBody = {
-                    "issueId": issueId[i]
+                if (!existingLinks.includes(issueId[i])) {
+                    let requestBody = {
+                        "issueId": issueId[i]
+                    }
+                    await this._post(`testcases/${testCaseKey}/links/issues`, requestBody, undefined, this.headers)
+                    console.log(`Linked test case ${testCaseKey} to issue ${issueId[i]}`);
+                } else {
+                    console.log(`Test case ${testCaseKey} already linked to issue ${issueId[i]}, skipping`);
                 }
-                await this._post(`testcases/${testCaseKey}/links/issues`, requestBody, undefined, this.headers)
             }
         }
     }

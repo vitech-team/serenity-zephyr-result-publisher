@@ -14,6 +14,7 @@ BRANCH_NAME= #branch_name
 ```
 ## Execution
 ```
-npm run publisher
+npm run publisher        # Publish Serenity Screenplay e2e test results
+npm run publisher-react  # Publish React unit test results (Jest)
 ```
 

@@ -1,24 +1,11 @@
 const fs = require('fs')
-const ZephyrScaleClient = require('./zephyrScaleClient.js')
-const JiraClient = require('./jiraClient.js')
+const BasePublisher = require('./basePublisher.js')
 
 
-class PublishResults {
-    zephyr = new ZephyrScaleClient(
-        {
-            'domain': process.env.ZEPHYR_DOMAIN,
-            'apiToken': process.env.ZEPHYR_TOKEN,
-            'projectKey': process.env.ZEPHYR_PROJECT_KEY,
-            'parentId': process.env.ZEPHYR_FOLDER_PARENT_ID,
-            'ownerId': process.env.ZEPHYR_OWNER_ID,
-            'testCycleFolder': process.env.ZEPHYR_TEST_CYCLE_FOLDER
-        });
-
-    jira = new JiraClient(
-        {
-            'domain': process.env.JIRA_DOMAIN,
-            'apiToken': process.env.JIRA_TOKEN
-        });
+class PublishResults extends BasePublisher {
+    constructor() {
+        super();
+    }
 
 
     status = {
@@ -43,15 +30,6 @@ class PublishResults {
     readContent(filename) {
         return JSON.parse(fs.readFileSync(process.env.JSON_INPUT_PATH + filename))
     }
-
-    addStep(step) {
-        return {
-            "inline": {
-                "description": step
-            }
-        }
-    }
-
 
     addActualResult(step) {
         let actualResult = ''
