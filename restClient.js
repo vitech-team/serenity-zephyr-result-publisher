@@ -108,7 +108,25 @@ class RestClient {
                     url: this._url(api),
                     headers: headers,
                     data: body
-            }).catch((error) => {console.error(error)});
+            }).catch((error) => {
+
+                const status = error.response?.status || 'unknown';
+                const statusText = error.response?.statusText || '';
+                const errorMessage = error.response?.data?.message || error.message || '';
+                const url = error.config?.url || this._url(api);
+                const requestBody = error.config?.data || body;
+
+                console.error(`\n❌ Request failed: ${method} ${url}`);
+                console.error(`   Status: ${status} ${statusText}`);
+                if (errorMessage) {
+                    console.error(`   Message: ${errorMessage}`);
+                }
+                if (requestBody) {
+                    console.error(`   Request body: ${typeof requestBody === 'string' ? requestBody : JSON.stringify(requestBody)}`);
+                }
+
+                throw error;
+            });
             await console.log(`Request: ${method} ${this._url(api)} ${result.status}`);
             return result.data;
         } catch (error) {

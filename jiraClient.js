@@ -40,6 +40,10 @@ class JiraClient extends RestClient {
         return result
     }
 
+    async getIssueSummaryByKey(issueKey) {
+        let response = await this._get(`issue/${issueKey}`);
+        return response['fields']['summary']
+    }
 
 }
 
